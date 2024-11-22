@@ -546,18 +546,33 @@ HRESULT STDMETHODCALLTYPE CAddressBar::ShowFileNotFoundError(HRESULT hRet)
 	if (!GetCurrentAddressText(input))
 		return E_FAIL;
 
-	WCHAR buf[2048] = {};
 
+	WCHAR szFormat[512];
+	WCHAR szMessage[1024];
+	WCHAR szTitle[512];
+	HINSTANCE hInst = _AtlBaseModule.GetModuleInstance();
 	if (m_theme == CLASSIC_EXPLORER_2K)
 	{
-		swprintf(buf, _countof(buf), L"Cannot find the file or item '%ls'.  Make sure the path and file name are correct.  Type 'go <SearchText>' to use AutoSearch.", input);
+		LoadStringW(hInst, IDS_NOTFOUND_TEXT_2K, szFormat, 512);
+		LoadStringW(hInst, IDS_NOTFOUND_TITLE_2K, szTitle, 512);
 	}
 	else
 	{
-		swprintf(buf, _countof(buf), L"Windows cannot find '%ls'. Check the spelling and try again, or try searching for the item by clicking the Start button and then clicking Search.", input);
+		LoadStringW(hInst, IDS_NOTFOUND_TEXT_XP, szFormat, 512);
+		LoadStringW(hInst, IDS_NOTFOUND_TITLE_XP, szTitle, 512);
+
+		// The XP error is from IE, and shows a file:// URI.
+		// Swap out \ for /.
+		int len = wcslen(input);
+		for (int i = 0; i < len; i++)
+		{
+			if (input[i] == L'\\')
+				input[i] = L'/';
+		}
 	}
 
-	MessageBoxEx(m_comboBoxEditCtl, buf, L"Address Bar", MB_OK | MB_ICONERROR, 0);
+	swprintf_s(szMessage, szFormat, input);
+	::MessageBoxW(m_comboBoxEditCtl, szMessage, szTitle, MB_OK | MB_ICONERROR);
 
 	return hRet;
 }
