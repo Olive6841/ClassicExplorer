@@ -540,6 +540,28 @@ BOOL CAddressBar::GetCurrentAddressText(CComHeapPtr<WCHAR> &pszText)
 	return ::GetWindowTextW(m_comboBoxEditCtl, pszText, cchMax);
 }
 
+HRESULT STDMETHODCALLTYPE CAddressBar::ShowFileNotFoundError(HRESULT hRet)
+{
+	CComHeapPtr<WCHAR> input;
+	if (!GetCurrentAddressText(input))
+		return E_FAIL;
+
+	WCHAR buf[2048] = {};
+
+	if (m_theme == CLASSIC_EXPLORER_2K)
+	{
+		swprintf(buf, _countof(buf), L"Cannot find the file or item '%ls'.  Make sure the path and file name are correct.  Type 'go <SearchText>' to use AutoSearch.", input);
+	}
+	else
+	{
+		swprintf(buf, _countof(buf), L"Windows cannot find '%ls'. Check the spelling and try again, or try searching for the item by clicking the Start button and then clicking Search.", input);
+	}
+
+	MessageBoxEx(m_comboBoxEditCtl, buf, L"Address Bar", MB_OK | MB_ICONERROR, 0);
+
+	return hRet;
+}
+
 /*
  * Execute: Perform the browse action with the requested address.
  */
@@ -561,8 +583,7 @@ HRESULT CAddressBar::Execute()
 		if (SUCCEEDED(ExecuteCommandLine()))
 			return S_OK;
 
-		// TODO: file not found message box:
-		return E_FAIL;
+		return ShowFileNotFoundError(hr);
 	}
 
 	if (!parsedPidl)
