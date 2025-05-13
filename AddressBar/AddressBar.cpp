@@ -27,7 +27,6 @@ LRESULT CAddressBar::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &bHa
 
 	CEUtil::CESettings cS = CEUtil::GetCESettings();
 	m_showGoButton = cS.showGoButton;
-	m_theme = cS.theme;
 
 	if (m_goText == L"")
 	{
@@ -125,29 +124,14 @@ LRESULT CAddressBar::CreateGoButton()
 
 	const TBBUTTON goButtonInfo[] = { {0, 1, TBSTATE_ENABLED, 0} };
 	HINSTANCE resourceInstance = _AtlBaseModule.GetResourceInstance();
-	int go_inactive_bitmap = IDB_10_GO_INACTIVE;
-	int go_active_bitmap = IDB_10_GO_ACTIVE;
 
-	if (m_theme == CLASSIC_EXPLORER_MEMPHIS)
-	{
-		go_inactive_bitmap = IDB_MEMPHIS_GO_INACTIVE;
-		go_active_bitmap = IDB_MEMPHIS_GO_ACTIVE;
-	}
-	else if (m_theme == CLASSIC_EXPLORER_2K)
-	{
-		go_inactive_bitmap = IDB_2K_GO_INACTIVE;
-		go_active_bitmap = IDB_2K_GO_ACTIVE;
-	}
-	else if (m_theme == CLASSIC_EXPLORER_XP)
-	{
-		go_inactive_bitmap = IDB_XP_GO_INACTIVE;
-		go_active_bitmap = IDB_XP_GO_ACTIVE;
-	}
+	int go_inactive_bitmap = IDB_XP_GO_INACTIVE;
+	int go_active_bitmap = IDB_XP_GO_ACTIVE;
 
 	m_himlGoInactive = ImageList_LoadImageW(
 		resourceInstance,
 		MAKEINTRESOURCEW(go_inactive_bitmap),
-		m_theme == CLASSIC_EXPLORER_MEMPHIS ? 18 : 20,
+		20,
 		0,
 		RGB(0, 0, 0),
 		IMAGE_BITMAP,
@@ -157,7 +141,7 @@ LRESULT CAddressBar::CreateGoButton()
 	m_himlGoActive = ImageList_LoadImageW(
 		resourceInstance,
 		MAKEINTRESOURCEW(go_active_bitmap),
-		m_theme == CLASSIC_EXPLORER_MEMPHIS ? 18 : 20,
+		20,
 		0,
 		RGB(0, 0, 0),
 		IMAGE_BITMAP,
@@ -551,24 +535,17 @@ HRESULT STDMETHODCALLTYPE CAddressBar::ShowFileNotFoundError(HRESULT hRet)
 	WCHAR szMessage[1024];
 	WCHAR szTitle[512];
 	HINSTANCE hInst = _AtlBaseModule.GetModuleInstance();
-	if (m_theme == CLASSIC_EXPLORER_2K)
-	{
-		LoadStringW(hInst, IDS_NOTFOUND_TEXT_2K, szFormat, 512);
-		LoadStringW(hInst, IDS_NOTFOUND_TITLE_2K, szTitle, 512);
-	}
-	else
-	{
-		LoadStringW(hInst, IDS_NOTFOUND_TEXT_XP, szFormat, 512);
-		LoadStringW(hInst, IDS_NOTFOUND_TITLE_XP, szTitle, 512);
 
-		// The XP error is from IE, and shows a file:// URI.
-		// Swap out \ for /.
-		int len = wcslen(input);
-		for (int i = 0; i < len; i++)
-		{
-			if (input[i] == L'\\')
-				input[i] = L'/';
-		}
+	LoadStringW(hInst, IDS_NOTFOUND_TEXT_XP, szFormat, 512);
+	LoadStringW(hInst, IDS_NOTFOUND_TITLE_XP, szTitle, 512);
+
+	// The XP error is from IE, and shows a file:// URI.
+	// Swap out \ for /.
+	int len = wcslen(input);
+	for (int i = 0; i < len; i++)
+	{
+		if (input[i] == L'\\')
+			input[i] = L'/';
 	}
 
 	swprintf_s(szMessage, szFormat, input);
